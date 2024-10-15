@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Trip Expense Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            text-align: center;
+            color: #007aff;
+        }
+        input, select, button {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 10px;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        button {
+            background-color: #007aff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            padding-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: rgba(248, 248, 248, 0.8);
+        }
+        .expense-list, .member-list {
+            flex: 1;
+            margin-top: 20px;
+        }
+        .expense-item, .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 14px;
+        }
+        .delete-btn {
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+        }
+        #downloadButtons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        #downloadButtons button {
+            width: 48%;
+        }
+        .payer-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .payer-button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #d0d0d0;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            flex: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+        .payer-button.active {
+            background-color: #007aff;
+            color: white;
+        }
+        .exception-members {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .exception-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
+        .exception-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ffd591;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .exception-button.active {
+            background-color: #d9d9d9;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .input-group input, .input-group button {
+            flex: 1;
+            margin: 0;
+        }
+        .lists-container {
+            display: flex;
+            gap: 20px;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .card h2 {
+            font-size: 28px;
+            color: #007aff;
+            margin-bottom: 15px;
+        }
+        .card h3 {
+            font-size: 24px;
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .expense-item, .settlement-item {
+            font-size: 18px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 30px;
+            height: 30px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        #results table {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        #results table th, #results table td {
+            padding: 12px;
+        }
+        .hidden {
+            display: none;
+        }
+        .expense-item {
+            font-size: 18px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .expense-number {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .expense-time {
+            font-size: 14px;
+            color: #666;
+        }
+        .settlement-item {
+            font-size: 16px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+        }
+        .settlement-name {
+            font-weight: bold;
+            color: #007aff;
+        }
+        .settlement-amount {
+            font-weight: bold;
+            color: #ff9500;
+            background-color: rgba(255, 149, 0, 0.1);
+            padding: 3px 6px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-left: 10px;
+        }
+        .settlements-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1d1d1f;
+            text-align: center;
+            margin-bottom: 30px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(180deg, #1d1d1f 0%, #434344 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Group Trip Expense Calculator</h1>
+        
+        <div id="step1" class="card">
+            <h2>Add Group Members</h2>
+            <p>How many people are in your travel group? Add them below.</p>
+            <div class="input-group">
+                <input type="text" id="newMember" placeholder="New Member's Name">
+                <button onclick="addMember()">Add Member</button>
+            </div>
+            <div id="memberList"></div>
+            <button onclick="showNextStep('step2')">Next Step</button>
+        </div>
+
+        <div id="step2" class="card hidden">
+            <button class="back-button" onclick="showNextStep('step1')">&larr;</button>
+            <h2>Add Expense</h2>
+            <p>Enter expense details, select payer and participants.</p>
+            <div id="payerButtons" class="payer-buttons"></div>
+            <div class="input-group">
+                <input type="text" id="item" placeholder="Expense Item">
+                <input type="number" id="amount" placeholder="Amount">
+            </div>
+            <div class="exception-members" id="exceptionMembers"></div>
+            <button onclick="addExpense()">Add Expense</button>
+        </div>
+
+        <div id="expenseList" class="card hidden">
+            <h2>Expenses</h2>
+            <div id="expenseItems"></div>
+        </div>
+
+        <div id="results" class="card hidden">
+            <h2>Results</h2>
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        let expenses = [];
+        let members = new Set();
+        let selectedPayer = '';
+        let exceptionMembers = new Set();
+        const colors = ['#FFB3BA', '#BAFFC9', '#BAE1FF', '#FFFFBA', '#FFDFBA', '#E0BBE4']; // 添加颜色数组
+        let currentStep = 'step1';
+
+        function showNextStep(nextStep) {
+            document.getElementById(currentStep).classList.add('hidden');
+            document.getElementById(nextStep).classList.remove('hidden');
+            currentStep = nextStep;
+
+            if (nextStep === 'step2') {
+                updatePayerButtons();
+            } else if (nextStep === 'step4') {
+                updateExceptionMembers();
+            }
+        }
+
+        function addMember() {
+            const newMember = document.getElementById('newMember').value;
+            if (newMember && !members.has(newMember)) {
+                members.add(newMember);
+                updatePayerButtons();
+                updateMemberList();
+                updateResults();
+                document.getElementById('newMember').value = '';
+            } else if (members.has(newMember)) {
+                alert('This member already exists');
+            } else {
+                alert('Please enter a member name');
+            }
+        }
+
+        function updateMemberList() {
+            const memberList = document.getElementById('memberList');
+            memberList.innerHTML = '';
+            members.forEach(member => {
+                const div = document.createElement('div');
+                div.className = 'member-item';
+                div.innerHTML = `
+                    <span>${member}</span>
+                    <button class="delete-btn" onclick="deleteMember('${member}')">Delete</button>
+                `;
+                memberList.appendChild(div);
+            });
+        }
+
+        function updatePayerButtons() {
+            const payerButtons = document.getElementById('payerButtons');
+            payerButtons.innerHTML = '';
+            members.forEach(member => {
+                const button = document.createElement('button');
+                button.className = 'payer-button';
+                button.textContent = member;
+                button.onclick = () => selectPayer(member);
+                payerButtons.appendChild(button);
+            });
+            updateExceptionMembers();
+        }
+
+        function selectPayer(member) {
+            selectedPayer = member;
+            document.querySelectorAll('.payer-button').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === member);
+            });
+        }
+
+        function updateExceptionMembers() {
+            const exceptionMembersDiv = document.getElementById('exceptionMembers');
+            exceptionMembersDiv.innerHTML = '<strong style="margin-right: 10px; flex-shrink: 0;">Exceptions:</strong>';
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'exception-buttons';
+            members.forEach(member => {
+                const button = document.createElement('button');
+                button.className = 'exception-button';
+                button.textContent = member;
+                button.onclick = () => toggleException(member, button);
+                buttonContainer.appendChild(button);
+            });
+            exceptionMembersDiv.appendChild(buttonContainer);
+        }
+
+        function toggleException(member, button) {
+            if (exceptionMembers.has(member)) {
+                exceptionMembers.delete(member);
+                button.classList.remove('active');
+            } else {
+                exceptionMembers.add(member);
+                button.classList.add('active');
+            }
+        }
+
+        function addExpense() {
+            const item = document.getElementById('item').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (selectedPayer && item && amount) {
+                const participatingMembers = new Set(members);
+                exceptionMembers.forEach(member => participatingMembers.delete(member));
+                
+                expenses.push({
+                    payer: selectedPayer,
+                    item,
+                    amount,
+                    participants: Array.from(participatingMembers),
+                    time: new Date().toLocaleString()
+                });
+                
+                updateExpenseList();
+                updateResults();
+                document.getElementById('item').value = '';
+                document.getElementById('amount').value = '';
+                exceptionMembers.clear();
+                updateExceptionMembers();
+            } else {
+                alert('Please select a payer and fill in all fields');
+            }
+        }
+
+        function updateExpenseList() {
+            const expenseItems = document.getElementById('expenseItems');
+            expenseItems.innerHTML = '';
+            expenses.forEach((expense, index) => {
+                const div = document.createElement('div');
+                div.className = 'expense-item';
+                const exceptions = Array.from(members).filter(m => !expense.participants.includes(m));
+                const exceptionText = exceptions.length > 0 ? ` (Exceptions: ${exceptions.join(', ')})` : '';
+                div.innerHTML = `
+                    <div>
+                        <span class="expense-number">#${index + 1}</span>
+                        <span>${expense.payer} paid $${expense.amount.toFixed(2)} for ${expense.item}${exceptionText}</span>
+                        <div class="expense-time">${expense.time}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteExpense(${index})">Delete</button>
+                `;
+                expenseItems.appendChild(div);
+            });
+            document.getElementById('expenseList').classList.remove('hidden');
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            updateExpenseList();
+            updateResults();
+        }
+
+        function deleteMember(member) {
+            members.delete(member);
+            expenses = expenses.filter(exp => exp.payer !== member);
+            updatePayerButtons();
+            updateExpenseList();
+            updateMemberList();
+            updateResults();
+        }
+
+        function clearInputs() {
+            document.getElementById('item').value = '';
+            document.getElementById('amount').value = '';
+        }
+
+        function updateResults() {
+            const results = document.getElementById('results');
+            const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const perPersonExpense = totalExpense / members.size;
+
+            let balances = {};
+            members.forEach(member => balances[member] = 0);
+
+            expenses.forEach(exp => {
+                const perPersonExpense = exp.amount / exp.participants.length;
+                exp.participants.forEach(participant => {
+                    balances[participant] -= perPersonExpense;
+                });
+                balances[exp.payer] += exp.amount;
+            });
+
+            let html = `
+                <h2>Total Expense: $${totalExpense.toFixed(2)}</h2>
+                <h3>Per Person: $${perPersonExpense.toFixed(2)}</h3>
+                <h3>Summary:</h3>
+                <table>
+                    <tr>
+                        <th>Member</th>
+                        <th>Total Paid</th>
+                        <th>Balance</th>
+                    </tr>
+            `;
+
+            for (let member of members) {
+                const totalPaid = expenses.filter(exp => exp.payer === member)
+                                          .reduce((sum, exp) => sum + exp.amount, 0);
+                html += `
+                    <tr>
+                        <td>${member}</td>
+                        <td>$${totalPaid.toFixed(2)}</td>
+                        <td>$${balances[member].toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+
+            html += '</table>';
+
+            html += '<h3>Settlements:</h3>';
+            html += '<div class="settlements-container">';
+            const pastelColors = [
+                'rgba(10, 186, 181, 0.3)', // Tiffany绿
+                'rgba(153, 102, 204, 0.3)', // 紫色
+                'rgba(255, 165, 0, 0.3)', // 橘色
+                'rgba(32, 178, 170, 0.3)', // 浅海绿
+                'rgba(221, 160, 221, 0.3)', // 梅红色
+                'rgba(240, 230, 140, 0.3)'  // 卡其色
+            ];
+            let colorIndex = 0;
+            let debtors = Array.from(members).filter(m => balances[m] < 0);
+            let creditors = Array.from(members).filter(m => balances[m] > 0);
+
+            for (let debtor of debtors) {
+                let debtorColor = pastelColors[colorIndex % pastelColors.length];
+                let debtAmount = -balances[debtor];
+                
+                for (let creditor of creditors) {
+                    if (debtAmount <= 0 || balances[creditor] <= 0) continue;
+                    
+                    let amount = Math.min(debtAmount, balances[creditor]);
+                    amount = Math.round(amount * 100) / 100; // Round to 2 decimal places
+
+                    if (amount > 0) {
+                        html += `
+                            <div class="settlement-item" style="background-color: ${debtorColor};">
+                                <span><span class="settlement-name">${debtor}</span> owes <span class="settlement-name">${creditor}</span></span>
+                                <span class="settlement-amount">$${amount.toFixed(2)}</span>
+                            </div>`;
+                        debtAmount -= amount;
+                        balances[creditor] -= amount;
+                    }
+                }
+                colorIndex++;
+            }
+
+            html += '</div>'; // 关闭 settlements-container
+            results.innerHTML = html;
+        }
+
+        function downloadExpensesCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Payer,Item,Amount\n";
+            expenses.forEach(expense => {
+                csvContent += `${expense.payer},${expense.item},${expense.amount}\n`;
+            });
+            downloadCSV(csvContent, "expenses.csv");
+        }
+
+        function downloadCalculationsCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Member,Total Paid,Balance\n";
+            const totalExpense = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const perPersonExpense = totalExpense / members.size;
+
+            let balances = {};
+            members.forEach(member => balances[member] = 0);
+
+            expenses.forEach(exp => {
+                balances[exp.payer] += exp.amount;
+            });
+
+            members.forEach(member => {
+                balances[member] -= perPersonExpense;
+                const totalPaid = expenses.filter(exp => exp.payer === member)
+                                          .reduce((sum, exp) => sum + exp.amount, 0);
+                csvContent += `${member},${totalPaid.toFixed(2)},${balances[member].toFixed(2)}\n`;
+            });
+
+            csvContent += `\nTotal Expense,${totalExpense.toFixed(2)}\n`;
+            csvContent += `Per Person Expense,${perPersonExpense.toFixed(2)}\n`;
+
+            downloadCSV(csvContent, "calculations.csv");
+        }
+
+        function downloadCSV(csvContent, fileName) {
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", fileName);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 初始化
+        updateMemberList();
+    </script>
+</body>
+</html>
